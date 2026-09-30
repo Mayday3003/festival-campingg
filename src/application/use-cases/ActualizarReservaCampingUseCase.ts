@@ -1,4 +1,7 @@
-import { IReservaCampingRepository, DatosActualizarReserva } from '../../domain/repositories/IReservaCampingRepository.js';
+import {
+  IReservaCampingRepository,
+  DatosActualizarReserva,
+} from '../../domain/repositories/IReservaCampingRepository.js';
 import { ReservaCamping } from '../../domain/entities/ReservaCamping.js';
 import { ValidationError, NotFoundError, BusinessRuleError } from '../errors/ApplicationErrors.js';
 
@@ -29,17 +32,28 @@ export class ActualizarReservaCampingUseCase {
 
     const camposNoPermitidos = claves.filter((k) => !CAMPOS_PERMITIDOS.includes(k));
     if (camposNoPermitidos.length > 0) {
-      throw new ValidationError(`Campos no permitidos para edición: ${camposNoPermitidos.join(', ')}`);
+      throw new ValidationError(
+        `Campos no permitidos para edición: ${camposNoPermitidos.join(', ')}`
+      );
     }
 
     if (payload.personas !== undefined) {
-      if (typeof payload.personas !== 'number' || !Number.isInteger(payload.personas) || payload.personas < 1 || payload.personas > 6) {
+      if (
+        typeof payload.personas !== 'number' ||
+        !Number.isInteger(payload.personas) ||
+        payload.personas < 1 ||
+        payload.personas > 6
+      ) {
         throw new ValidationError('personas debe ser un entero entre 1 y 6');
       }
     }
 
     if (payload.zona_id !== undefined) {
-      if (typeof payload.zona_id !== 'number' || !Number.isInteger(payload.zona_id) || payload.zona_id <= 0) {
+      if (
+        typeof payload.zona_id !== 'number' ||
+        !Number.isInteger(payload.zona_id) ||
+        payload.zona_id <= 0
+      ) {
         throw new ValidationError('zona_id debe ser un entero positivo');
       }
     }
@@ -94,7 +108,9 @@ export class ActualizarReservaCampingUseCase {
       throw new NotFoundError('Asistente titular de la reserva no encontrado');
     }
     if (asistente.fecha_nacimiento > FECHA_CORTE_MAYORIA_EDAD) {
-      throw new BusinessRuleError('Solo acampan mayores de edad cumplidos al 19 de noviembre de 2026');
+      throw new BusinessRuleError(
+        'Solo acampan mayores de edad cumplidos al 19 de noviembre de 2026'
+      );
     }
 
     // Regla 2: Un asistente tiene máximo una reserva activa
@@ -114,7 +130,8 @@ export class ActualizarReservaCampingUseCase {
     // 4. Persistir cambios
     const datosActualizacion: DatosActualizarReserva = {};
     if (payload.zona_id !== undefined) datosActualizacion.zona_id = payload.zona_id;
-    if (payload.fecha_entrada !== undefined) datosActualizacion.fecha_entrada = payload.fecha_entrada;
+    if (payload.fecha_entrada !== undefined)
+      datosActualizacion.fecha_entrada = payload.fecha_entrada;
     if (payload.fecha_salida !== undefined) datosActualizacion.fecha_salida = payload.fecha_salida;
     if (payload.personas !== undefined) datosActualizacion.personas = payload.personas;
 

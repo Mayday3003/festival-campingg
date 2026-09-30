@@ -2,9 +2,7 @@ import { Request, Response } from 'express';
 import { ListarReservasCampingUseCase } from '../../../application/use-cases/ListarReservasCampingUseCase.js';
 
 export class ReservaCampingController {
-  constructor(
-    private listarUseCase: ListarReservasCampingUseCase
-  ) {}
+  constructor(private listarUseCase: ListarReservasCampingUseCase) {}
 
   listar = async (req: Request, res: Response) => {
     try {

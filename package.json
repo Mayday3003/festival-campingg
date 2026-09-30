@@ -9,7 +9,7 @@
     "build": "tsc",
     "start": "node dist/app.js",
     "sync": "npx prisma db pull && npx prisma generate",
-    "test": "node ../kit-estudiantes/pruebas/correr.mjs camping http://localhost:3000",
+    "test": "node pruebas/correr.mjs camping http://localhost:3000",
     "test:suite": "node tests/suite-completa.mjs"
   },
   "keywords": ["express", "typescript", "prisma", "clean-architecture", "festival-picnic-2026"],

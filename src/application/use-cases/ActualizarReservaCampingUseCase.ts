@@ -20,6 +20,10 @@ export class ActualizarReservaCampingUseCase {
   constructor(private readonly repository: IReservaCampingRepository) {}
 
   async ejecutar(id: number, payload: any): Promise<ReservaCamping> {
+    if (!id || typeof id !== 'number' || !Number.isInteger(id) || id <= 0) {
+      throw new ValidationError('El id debe ser un número entero positivo');
+    }
+
     // 1. Validaciones sintácticas y de campos permitidos
     if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
       throw new ValidationError('El cuerpo de la petición debe ser un objeto JSON válido');

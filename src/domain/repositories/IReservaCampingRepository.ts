@@ -17,6 +17,13 @@ export interface ResultadoPaginado<T> {
   };
 }
 
+export interface DatosActualizarReserva {
+  zona_id?: number;
+  fecha_entrada?: string;
+  fecha_salida?: string;
+  personas?: number;
+}
+
 export interface IReservaCampingRepository {
   listar(filtros: FiltrosListado): Promise<ResultadoPaginado<ReservaCamping>>;
   obtenerPorId(id: number): Promise<ReservaCamping | null>;
@@ -31,11 +38,6 @@ export interface IReservaCampingRepository {
     fecha_salida: string;
     personas: number;
   }): Promise<ReservaCamping>;
-  actualizar(id: number, datos: Partial<{
-    zona_id: number;
-    fecha_entrada: string;
-    fecha_salida: string;
-    personas: number;
-  }>): Promise<ReservaCamping>;
+  actualizar(id: number, datos: DatosActualizarReserva): Promise<ReservaCamping>;
   borradoLogico(id: number): Promise<boolean>;
 }

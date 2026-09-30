@@ -1,5 +1,10 @@
 import { prisma } from './prisma.js';
-import { IReservaCampingRepository, FiltrosListado, ResultadoPaginado } from '../../domain/repositories/IReservaCampingRepository.js';
+import {
+  IReservaCampingRepository,
+  FiltrosListado,
+  ResultadoPaginado,
+  DatosActualizarReserva,
+} from '../../domain/repositories/IReservaCampingRepository.js';
 import { ReservaCamping, Asistente, Zona } from '../../domain/entities/ReservaCamping.js';
 
 function formatearFecha(date: Date): string {
@@ -131,12 +136,7 @@ export class PrismaReservaCampingRepository implements IReservaCampingRepository
     return mapearReserva(creada);
   }
 
-  async actualizar(id: number, datos: Partial<{
-    zona_id: number;
-    fecha_entrada: string;
-    fecha_salida: string;
-    personas: number;
-  }>): Promise<ReservaCamping> {
+  async actualizar(id: number, datos: DatosActualizarReserva): Promise<ReservaCamping> {
     const dataUpdate: any = {};
     if (datos.zona_id !== undefined) dataUpdate.zona_id = datos.zona_id;
     if (datos.fecha_entrada !== undefined) {

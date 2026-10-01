@@ -12,7 +12,7 @@
     "start": "node dist/app.js",
     "sync": "npx prisma db pull && npx prisma generate",
     "test": "node pruebas/correr.mjs camping http://localhost:3000",
-    "test:suite": "node tests/suite-completa.mjs"
+    "test:suite": "node pruebas/correr.mjs camping http://localhost:3000 --ocultas tests --sin-publicas"
   },
   "keywords": [
     "express",

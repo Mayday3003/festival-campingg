@@ -76,6 +76,13 @@ export class CreateCampingReservationUseCase {
       );
     }
 
+    // Rule 3: each reservation takes one tent; the zone cannot exceed its capacity
+    // ponytail: count-then-insert can race under concurrent POSTs; wrap in a serializable transaction if that matters
+    const occupied = await this.repository.contarReservasActivasPorZona(zona_id);
+    if (occupied >= zone.capacidad) {
+      throw new BusinessRuleError(`Zone ${zona_id} is full (${zone.capacidad} tents)`);
+    }
+
     // Server-side fields (id, state) are ignored if the client sends them
     return await this.repository.crear({
       asistente_id,

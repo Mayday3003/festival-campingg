@@ -1,6 +1,6 @@
 import { IReservaCampingRepository } from '../../domain/repositories/IReservaCampingRepository.js';
 import { ReservaCamping } from '../../domain/entities/ReservaCamping.js';
-import { ValidationError } from '../errors/ApplicationErrors.js';
+import { ValidationError, NotFoundError } from '../errors/ApplicationErrors.js';
 
 const MIN_DATE = '2026-11-19';
 const MAX_DATE = '2026-11-23';
@@ -43,6 +43,21 @@ export class CreateCampingReservationUseCase {
     }
     if (!Number.isInteger(personas) || personas < 1 || personas > 6) {
       throw new ValidationError('personas must be an integer between 1 and 6');
+    }
+
+    // 2. 404: referenced records must exist
+    const attendee = await this.repository.obtenerAsistentePorId(asistente_id);
+    if (!attendee) {
+      throw new NotFoundError(`Attendee ${asistente_id} not found`);
+    }
+    const zone = await this.repository.obtenerZonaPorId(zona_id);
+    if (!zone) {
+      throw new NotFoundError(`Zone ${zona_id} not found`);
+    }
+
+    // 3. 400: the zone exists but is not a camping zone
+    if (zone.tipo !== 'CAMPING') {
+      throw new ValidationError(`Zone ${zona_id} is not a CAMPING zone`);
     }
 
     // Server-side fields (id, state) are ignored if the client sends them

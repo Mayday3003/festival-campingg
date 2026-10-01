@@ -2,6 +2,9 @@ import { Request, Response } from 'express';
 import { ListarReservasCampingUseCase } from '../../../application/use-cases/ListarReservasCampingUseCase.js';
 import { ActualizarReservaCampingUseCase } from '../../../application/use-cases/ActualizarReservaCampingUseCase.js';
 import { EliminarReservaCampingUseCase } from '../../../application/use-cases/EliminarReservaCampingUseCase.js';
+import { CreateCampingReservationUseCase } from '../../../application/use-cases/CreateCampingReservationUseCase.js';
+import { GetZoneOccupancyUseCase } from '../../../application/use-cases/GetZoneOccupancyUseCase.js';
+import { GetCampingReservationUseCase } from '../../../application/use-cases/GetCampingReservationUseCase.js';
 import {
   ValidationError,
   NotFoundError,
@@ -11,9 +14,20 @@ import {
 export class ReservaCampingController {
   constructor(
     private listarUseCase: ListarReservasCampingUseCase,
-    private actualizarUseCase?: ActualizarReservaCampingUseCase,
-    private eliminarUseCase?: EliminarReservaCampingUseCase
+    private actualizarUseCase: ActualizarReservaCampingUseCase,
+    private eliminarUseCase: EliminarReservaCampingUseCase,
+    private getUseCase: GetCampingReservationUseCase,
+    private createUseCase: CreateCampingReservationUseCase,
+    private occupancyUseCase: GetZoneOccupancyUseCase
   ) {}
+
+  private parsePositiveInt(value: unknown, name: string): number {
+    const str = String(value ?? '');
+    if (!/^\d+$/.test(str) || parseInt(str, 10) <= 0) {
+      throw new ValidationError(`${name} must be a positive integer`);
+    }
+    return parseInt(str, 10);
+  }
 
   private manejarError(err: any, res: Response) {
     if (err instanceof ValidationError) {
@@ -84,6 +98,35 @@ export class ReservaCampingController {
       });
 
       return res.status(200).json(resultado);
+    } catch (err: any) {
+      return this.manejarError(err, res);
+    }
+  };
+
+  obtenerPorId = async (req: Request, res: Response) => {
+    try {
+      const id = this.parsePositiveInt(req.params.id, 'id');
+      const reservation = await this.getUseCase.execute(id);
+      return res.status(200).json({ data: reservation });
+    } catch (err: any) {
+      return this.manejarError(err, res);
+    }
+  };
+
+  crear = async (req: Request, res: Response) => {
+    try {
+      const created = await this.createUseCase.execute(req.body);
+      return res.status(201).json({ data: created });
+    } catch (err: any) {
+      return this.manejarError(err, res);
+    }
+  };
+
+  obtenerOcupacion = async (req: Request, res: Response) => {
+    try {
+      const zoneId = this.parsePositiveInt(req.params.zonaId, 'zonaId');
+      const occupancy = await this.occupancyUseCase.execute(zoneId);
+      return res.status(200).json({ data: occupancy });
     } catch (err: any) {
       return this.manejarError(err, res);
     }

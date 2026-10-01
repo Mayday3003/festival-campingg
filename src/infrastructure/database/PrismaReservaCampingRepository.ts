@@ -55,7 +55,7 @@ export class PrismaReservaCampingRepository implements IReservaCampingRepository
         total,
         currentPage: filtros.page,
         limit: filtros.limit,
-        totalPages: Math.ceil(total / filtros.limit) || 1,
+        totalPages: Math.ceil(total / filtros.limit),
       },
     };
   }

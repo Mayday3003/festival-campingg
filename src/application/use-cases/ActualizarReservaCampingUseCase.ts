@@ -24,7 +24,7 @@ export class ActualizarReservaCampingUseCase {
       throw new ValidationError('El id debe ser un número entero positivo');
     }
 
-    // 1. Validaciones sintácticas y de campos permitidos
+    // 1. Validaciones sintácticas y de campos permitidos (400)
     if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
       throw new ValidationError('El cuerpo de la petición debe ser un objeto JSON válido');
     }
@@ -76,7 +76,8 @@ export class ActualizarReservaCampingUseCase {
       }
     }
 
-    // 2. Existencia de la reserva
+    // 2. Existencia de la reserva (404)
+    // Según CONVENCIONES §4: "Un id que no existe, o que existe con state = 'REMOVED' → 404 (en GET, PATCH y DELETE)"
     const reservaActual = await this.repository.obtenerPorId(id);
     if (!reservaActual || reservaActual.state === 'REMOVED') {
       throw new NotFoundError('Reserva de camping no encontrada');

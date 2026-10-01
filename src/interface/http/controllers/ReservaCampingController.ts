@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { ListarReservasCampingUseCase } from '../../../application/use-cases/ListarReservasCampingUseCase.js';
 import { ActualizarReservaCampingUseCase } from '../../../application/use-cases/ActualizarReservaCampingUseCase.js';
 import { EliminarReservaCampingUseCase } from '../../../application/use-cases/EliminarReservaCampingUseCase.js';
+import { ObtenerReservaCampingUseCase } from '../../../application/use-cases/ObtenerReservaCampingUseCase.js';
+import { ObtenerOcupacionZonaUseCase } from '../../../application/use-cases/ObtenerOcupacionZonaUseCase.js';
 import {
   ValidationError,
   NotFoundError,
@@ -12,7 +14,9 @@ export class ReservaCampingController {
   constructor(
     private listarUseCase: ListarReservasCampingUseCase,
     private actualizarUseCase?: ActualizarReservaCampingUseCase,
-    private eliminarUseCase?: EliminarReservaCampingUseCase
+    private eliminarUseCase?: EliminarReservaCampingUseCase,
+    private obtenerPorIdUseCase?: ObtenerReservaCampingUseCase,
+    private obtenerOcupacionZonaUseCase?: ObtenerOcupacionZonaUseCase
   ) {}
 
   private manejarError(err: any, res: Response) {
@@ -122,6 +126,46 @@ export class ReservaCampingController {
 
       const resultado = await this.eliminarUseCase.ejecutar(id);
       return res.status(200).json(resultado);
+    } catch (err: any) {
+      return this.manejarError(err, res);
+    }
+  };
+
+  obtenerPorId = async (req: Request, res: Response) => {
+    try {
+      const idStr = String(req.params.id ?? '');
+      if (!/^\d+$/.test(idStr) || parseInt(idStr, 10) <= 0) {
+        return res.status(400).json({ error: 'El id debe ser un número entero positivo' });
+      }
+
+      const id = parseInt(idStr, 10);
+      if (!this.obtenerPorIdUseCase) {
+        return res.status(500).json({ error: 'Caso de uso de obtención no configurado' });
+      }
+
+      const resultado = await this.obtenerPorIdUseCase.ejecutar(id);
+      return res.status(200).json({ data: resultado });
+    } catch (err: any) {
+      return this.manejarError(err, res);
+    }
+  };
+
+  obtenerOcupacionZona = async (req: Request, res: Response) => {
+    try {
+      const zonaIdStr = String(req.params.zonaId ?? '');
+      if (!/^\d+$/.test(zonaIdStr) || parseInt(zonaIdStr, 10) <= 0) {
+        return res
+          .status(400)
+          .json({ error: 'El id de la zona debe ser un número entero positivo' });
+      }
+
+      const zonaId = parseInt(zonaIdStr, 10);
+      if (!this.obtenerOcupacionZonaUseCase) {
+        return res.status(500).json({ error: 'Caso de uso de ocupación de zona no configurado' });
+      }
+
+      const resultado = await this.obtenerOcupacionZonaUseCase.ejecutar(zonaId);
+      return res.status(200).json({ data: resultado });
     } catch (err: any) {
       return this.manejarError(err, res);
     }

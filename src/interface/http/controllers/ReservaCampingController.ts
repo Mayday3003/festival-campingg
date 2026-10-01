@@ -39,8 +39,9 @@ export class ReservaCampingController {
     if (err instanceof BusinessRuleError) {
       return res.status(409).json({ error: err.message });
     }
-    const status = err.status || 500;
-    return res.status(status).json({ error: err.message || 'Error interno del servidor' });
+    // Errores inesperados (p. ej. Prisma): se registran, pero no se exponen detalles internos
+    console.error(err);
+    return res.status(500).json({ error: 'Error interno del servidor' });
   }
 
   listar = async (req: Request, res: Response) => {

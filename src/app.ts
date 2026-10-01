@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import reservaCampingRoutes from './interface/http/routes/reservaCampingRoutes.js';
@@ -16,6 +16,14 @@ app.use('/api/reservas-camping', reservaCampingRoutes);
 // Manejo general de rutas no encontradas
 app.use((req: Request, res: Response) => {
   res.status(404).json({ error: 'Ruta no encontrada' });
+});
+
+// Errores de express.json (JSON mal formado) u otros: siempre { error }, nunca el stack trace
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  const status = err.status >= 400 && err.status < 500 ? err.status : 500;
+  res
+    .status(status)
+    .json({ error: status === 500 ? 'Error interno del servidor' : 'JSON inválido' });
 });
 
 const PORT = Number(process.env.PORT) || 3000;

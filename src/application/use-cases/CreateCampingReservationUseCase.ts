@@ -1,9 +1,10 @@
 import { IReservaCampingRepository } from '../../domain/repositories/IReservaCampingRepository.js';
 import { ReservaCamping } from '../../domain/entities/ReservaCamping.js';
-import { ValidationError, NotFoundError } from '../errors/ApplicationErrors.js';
+import { ValidationError, NotFoundError, BusinessRuleError } from '../errors/ApplicationErrors.js';
 
 const MIN_DATE = '2026-11-19';
 const MAX_DATE = '2026-11-23';
+const ADULT_BIRTH_DATE_CUTOFF = '2008-11-19';
 const REQUIRED_FIELDS = ['asistente_id', 'zona_id', 'fecha_entrada', 'fecha_salida', 'personas'];
 
 const isPositiveInt = (v: unknown): v is number => Number.isInteger(v) && (v as number) > 0;
@@ -58,6 +59,14 @@ export class CreateCampingReservationUseCase {
     // 3. 400: the zone exists but is not a camping zone
     if (zone.tipo !== 'CAMPING') {
       throw new ValidationError(`Zone ${zona_id} is not a CAMPING zone`);
+    }
+
+    // 4. 409 business rules
+    // Rule 1: adults only. Turning 18 on 2026-11-19 means born on or before 2008-11-19
+    if (attendee.fecha_nacimiento > ADULT_BIRTH_DATE_CUTOFF) {
+      throw new BusinessRuleError(
+        `Only attendees who are 18 by ${MIN_DATE} can camp (born on or before ${ADULT_BIRTH_DATE_CUTOFF})`
+      );
     }
 
     // Server-side fields (id, state) are ignored if the client sends them

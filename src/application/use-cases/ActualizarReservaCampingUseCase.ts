@@ -3,7 +3,11 @@ import {
   DatosActualizarReserva,
 } from '../../domain/repositories/IReservaCampingRepository.js';
 import { ReservaCamping } from '../../domain/entities/ReservaCamping.js';
-import { ValidationError, NotFoundError, BusinessRuleError } from '../errors/ApplicationErrors.js';
+import {
+  ValidationError,
+  NotFoundError,
+  BusinessRuleError,
+} from '../errors/ApplicationErrors.js';
 
 const CAMPOS_PERMITIDOS = ['zona_id', 'fecha_entrada', 'fecha_salida', 'personas'];
 const FECHA_MIN = '2026-11-19';
@@ -24,16 +28,12 @@ export class ActualizarReservaCampingUseCase {
       throw new ValidationError('El id debe ser un número entero positivo');
     }
 
-    // 1. Validaciones sintácticas y de campos permitidos
+    // 1. Validaciones sintácticas y de campos permitidos (400)
     if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
       throw new ValidationError('El cuerpo de la petición debe ser un objeto JSON válido');
     }
 
     const claves = Object.keys(payload);
-    if (claves.length === 0) {
-      throw new ValidationError('Debe enviar al menos un campo para actualizar');
-    }
-
     const camposNoPermitidos = claves.filter((k) => !CAMPOS_PERMITIDOS.includes(k));
     if (camposNoPermitidos.length > 0) {
       throw new ValidationError(
@@ -80,7 +80,8 @@ export class ActualizarReservaCampingUseCase {
       }
     }
 
-    // 2. Existencia de la reserva
+    // 2. Existencia de la reserva (404)
+    // Según CONVENCIONES §4: "Un id que no existe, o que existe con state = 'REMOVED' → 404 (en GET, PATCH y DELETE)"
     const reservaActual = await this.repository.obtenerPorId(id);
     if (!reservaActual || reservaActual.state === 'REMOVED') {
       throw new NotFoundError('Reserva de camping no encontrada');

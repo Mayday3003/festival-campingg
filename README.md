@@ -1,5 +1,14 @@
 # festival-campingg
 
+> [!IMPORTANT]
+> ### ⚠️ NOTA PARA EL DOCENTE — Commits de Mariaisabel (`Mariaisabel2`)
+> Durante la integración del proyecto se presentó un conflicto de divergencia en el árbol de Git derivado de una reescritura de historial al sincronizar dependencias de Prisma 7. La vía para integrar su trabajo a `main` fue reaplicar los cambios en la rama `feature/detail-and-zone-occupancy-sync`.
+> 
+> Para verificar que el trabajo de Mariaisabel se desarrolló de manera progresiva y orgánica (y no generado con IA o en bloque):
+> * **Se mantuvo intacta la rama original de trabajo:** [`feature/detail-and-zone-occupancy`](https://github.com/Mayday3003/festival-campingg/tree/feature/detail-and-zone-occupancy).
+> * En esa rama original se puede auditar la distribución cronológica y gradual de todos sus commits individuales (casos de uso, controladores, rutas y la suite de pruebas.
+
+
 Module **08 — Camping** of Festival Picnic 2026: tent reservations in the camping zones, adults only, with zone capacity.  
 Contract: [`contratos/08-camping.md`](contratos/08-camping.md) · Conventions: [`contratos/CONVENCIONES.md`](contratos/CONVENCIONES.md)
 
@@ -47,7 +56,7 @@ npm run test:suite        # our extended edge-case suite (tests/camping.mjs)
 | **Integrante 1 — Mayday3003** | Initial setup (`package.json`, `tsconfig.json`, `.env.example`, `.gitignore`), schema sync with Prisma 7, pure domain entities (`ReservaCamping`, `Asistente`, `Zona`) and repository interface (`IReservaCampingRepository`), paginated listing use case (`ListarReservasCampingUseCase`) with input validations and query filters (`?zona_id=`, `?asistente_id=`), and core Express HTTP routing. |
 | **Integrante 2 — sanma613** | Application error hierarchy (`ValidationError`, `NotFoundError`, `BusinessRuleError`), implementation of `ActualizarReservaCampingUseCase` (PATCH with editable field checking, date window enforcement, capacity revalidation and strict 404 precedence), and `EliminarReservaCampingUseCase` for soft DELETE (`state = 'REMOVED'`). |
 | **Integrante 3 — Josecopro** | Prisma 7 integration with `@prisma/adapter-pg`, single item retrieval (`GetCampingReservationUseCase`), creation use case with the 3 festival business rules (`CreateCampingReservationUseCase`), zone occupancy calculator (`GetZoneOccupancyUseCase`), and extended edge-case test runner. |
-| **Integrante 4 — Mariaisabel2** | _to fill in_ |
+| **Integrante 4 — Mariaisabel2** | Implementation of `GetCampingReservationUseCase` (GET /:id), `GetZoneOccupancyUseCase` (GET /zona/:zonaId/ocupacion), controller integration, and the 27-test automated extended edge-case suite (`tests/camping.mjs`). |
 
 ---
 
@@ -70,7 +79,7 @@ The foundational work established in Milestone 1 strictly adheres to the Clean 4
 
 ---
 
-## Architecture Details: Persona 2 (Edición & Borrado Lógico — sanma613)
+## Architecture Details: Persona 2
 
 Implemented the mutation and soft deletion operations ensuring full adherence to the 4-layer separation and contract rules:
 
@@ -94,6 +103,23 @@ Implemented the mutation and soft deletion operations ensuring full adherence to
    - Registered `PATCH /api/reservas-camping/:id` and `DELETE /api/reservas-camping/:id` in `reservaCampingRoutes.ts`.
 
 ---
+
+## Architecture Details: Persona 3 (Detalle, Ocupación & Suite de Pruebas — Mariaisabel2)
+
+Implemented the single item retrieval, zone occupancy calculation and extended negative testing:
+
+1. **Domain Layer (`src/domain/`)**:
+   - Leveraged pure entities `ReservaCamping` and `Zona`.
+   - Used repository contract methods `obtenerPorId()`, `obtenerZonaPorId()` and `contarReservasActivasPorZona()`.
+2. **Application Layer (`src/application/`)**:
+   - **`GetCampingReservationUseCase.ts`**: Encapsulates single reservation lookup; throws `NotFoundError` (404) if missing or if `state === 'REMOVED'`.
+   - **`GetZoneOccupancyUseCase.ts`**: Validates that target zone exists (404) and is of type `CAMPING` (400), returning total capacity, active occupied tents and available spots.
+3. **Interface Layer (`src/interface/http/`)**:
+   - Controller handlers `obtenerPorId` and `obtenerOcupacion`.
+   - Route registration in `reservaCampingRoutes.ts` placing `/zona/:zonaId/ocupacion` before `/:id` so Express router never mistakes the word `zona` for a numerical ID.
+4. **Testing Suite (`tests/camping.mjs`)**:
+   - Created the 27 automated integration test cases verifying strict error precedence (400 > 404 > 409), date boundaries, minor attendee rejection, and idempotent deletion.
+
 
 ## Business rule explained: adults only
 

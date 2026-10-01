@@ -23,12 +23,12 @@ app.use((req: Request, res: Response) => {
   res.status(404).json({ error: 'Ruta no encontrada' });
 });
 
-// Middleware de manejo global de errores: previene fugas de stack trace (§2 CONVENCIONES)
+// Errores de express.json (JSON mal formado) u otros: siempre { error }, nunca el stack trace (§2 CONVENCIONES)
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  const status = typeof err.status === 'number' ? err.status : 500;
-  res.status(status).json({
-    error: err.message || 'Error interno del servidor',
-  });
+  const status = err.status >= 400 && err.status < 500 ? err.status : 500;
+  res
+    .status(status)
+    .json({ error: status === 500 ? 'Error interno del servidor' : 'JSON inválido' });
 });
 
 const PORT = Number(process.env.PORT) || 3000;

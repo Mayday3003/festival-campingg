@@ -3,11 +3,7 @@ import {
   DatosActualizarReserva,
 } from '../../domain/repositories/IReservaCampingRepository.js';
 import { ReservaCamping } from '../../domain/entities/ReservaCamping.js';
-import {
-  ValidationError,
-  NotFoundError,
-  BusinessRuleError,
-} from '../errors/ApplicationErrors.js';
+import { ValidationError, NotFoundError, BusinessRuleError } from '../errors/ApplicationErrors.js';
 
 const CAMPOS_PERMITIDOS = ['zona_id', 'fecha_entrada', 'fecha_salida', 'personas'];
 const FECHA_MIN = '2026-11-19';
@@ -85,6 +81,11 @@ export class ActualizarReservaCampingUseCase {
     const reservaActual = await this.repository.obtenerPorId(id);
     if (!reservaActual || reservaActual.state === 'REMOVED') {
       throw new NotFoundError('Reserva de camping no encontrada');
+    }
+
+    // Cuerpo vacío se revisa después de la existencia: PATCH /999999 con {} → 404
+    if (claves.length === 0) {
+      throw new ValidationError('Debe enviar al menos un campo para actualizar');
     }
 
     // Coherencia de fechas combinando valores nuevos con existentes

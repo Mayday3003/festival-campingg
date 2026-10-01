@@ -6,9 +6,7 @@
 > 
 > Para verificar que el trabajo de Mariaisabel se desarrolló de manera progresiva y orgánica (y no generado con IA o en bloque):
 > * **Se mantuvo intacta la rama original de trabajo:** [`feature/detail-and-zone-occupancy`](https://github.com/Mayday3003/festival-campingg/tree/feature/detail-and-zone-occupancy).
-> * En esa rama original se puede auditar la distribución cronológica y gradual de todos sus commits individuales (casos de uso, controladores, rutas y la suite de pruebas.
-
-
+> * En esa rama original se puede auditar la distribución cronológica y gradual de todos sus commits individuales (casos de uso, controladores, rutas y la suite de pruebas).
 Module **08 — Camping** of Festival Picnic 2026: tent reservations in the camping zones, adults only, with zone capacity.  
 Contract: [`contratos/08-camping.md`](contratos/08-camping.md) · Conventions: [`contratos/CONVENCIONES.md`](contratos/CONVENCIONES.md)
 
@@ -30,7 +28,7 @@ Tests (with the API running):
 
 ```bash
 npm test                  # public kit tests
-npm run test:suite        # our extended edge-case suite (tests/camping.mjs)
+npm run test:suite        # our extended edge-case and unit suite (tests/suite-completa.mjs)
 ```
 
 ---
@@ -117,7 +115,7 @@ Implemented the single item retrieval, zone occupancy calculation and extended n
 3. **Interface Layer (`src/interface/http/`)**:
    - Controller handlers `obtenerPorId` and `obtenerOcupacion`.
    - Route registration in `reservaCampingRoutes.ts` placing `/zona/:zonaId/ocupacion` before `/:id` so Express router never mistakes the word `zona` for a numerical ID.
-4. **Testing Suite (`tests/camping.mjs`)**:
+4. **Testing Suite (`tests/suite-completa.mjs`)**:
    - Created the 27 automated integration test cases verifying strict error precedence (400 > 404 > 409), date boundaries, minor attendee rejection, and idempotent deletion.
 
 
@@ -127,4 +125,4 @@ Implemented the single item retrieval, zone occupancy calculation and extended n
 
 **Where it lives.** `src/application/use-cases/CreateCampingReservationUseCase.ts` (rule 1, constant `ADULT_BIRTH_DATE_CUTOFF`). It runs only after every 400/404 check passes, following the order in CONVENCIONES §5. The controller only delegates to the use case, and the use case reads the attendee through the `IReservaCampingRepository` interface, not through Prisma.
 
-**How we tested it.** The public test `Regla: un menor de edad no puede acampar (409)` posts attendee 19 (a minor) and expects 409. Our suite (`tests/camping.mjs`) covers the boundary: attendee 20, who turns 18 exactly on 2026-11-19, gets **201**. That reservation is then soft-deleted so the test can run again.
+**How we tested it.** The public test `Regla: un menor de edad no puede acampar (409)` posts attendee 19 (a minor) and expects 409. Our suite (`tests/suite-completa.mjs`) covers the boundary: attendee 20, who turns 18 exactly on 2026-11-19, gets **201**. That reservation is then soft-deleted so the test can run again.

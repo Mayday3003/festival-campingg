@@ -3,6 +3,7 @@ import { ListarReservasCampingUseCase } from '../../../application/use-cases/Lis
 import { ActualizarReservaCampingUseCase } from '../../../application/use-cases/ActualizarReservaCampingUseCase.js';
 import { EliminarReservaCampingUseCase } from '../../../application/use-cases/EliminarReservaCampingUseCase.js';
 import { CreateCampingReservationUseCase } from '../../../application/use-cases/CreateCampingReservationUseCase.js';
+import { GetZoneOccupancyUseCase } from '../../../application/use-cases/GetZoneOccupancyUseCase.js';
 import { GetCampingReservationUseCase } from '../../../application/use-cases/GetCampingReservationUseCase.js';
 import {
   ValidationError,
@@ -16,7 +17,8 @@ export class ReservaCampingController {
     private actualizarUseCase: ActualizarReservaCampingUseCase,
     private eliminarUseCase: EliminarReservaCampingUseCase,
     private getUseCase: GetCampingReservationUseCase,
-    private createUseCase: CreateCampingReservationUseCase
+    private createUseCase: CreateCampingReservationUseCase,
+    private occupancyUseCase: GetZoneOccupancyUseCase
   ) {}
 
   private parsePositiveInt(value: unknown, name: string): number {
@@ -115,6 +117,16 @@ export class ReservaCampingController {
     try {
       const created = await this.createUseCase.execute(req.body);
       return res.status(201).json({ data: created });
+    } catch (err: any) {
+      return this.manejarError(err, res);
+    }
+  };
+
+  obtenerOcupacion = async (req: Request, res: Response) => {
+    try {
+      const zoneId = this.parsePositiveInt(req.params.zonaId, 'zonaId');
+      const occupancy = await this.occupancyUseCase.execute(zoneId);
+      return res.status(200).json({ data: occupancy });
     } catch (err: any) {
       return this.manejarError(err, res);
     }

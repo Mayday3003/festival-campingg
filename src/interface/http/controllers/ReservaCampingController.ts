@@ -1,10 +1,33 @@
 import { Request, Response } from 'express';
 import { ListarReservasCampingUseCase } from '../../../application/use-cases/ListarReservasCampingUseCase.js';
+import { ActualizarReservaCampingUseCase } from '../../../application/use-cases/ActualizarReservaCampingUseCase.js';
+import { EliminarReservaCampingUseCase } from '../../../application/use-cases/EliminarReservaCampingUseCase.js';
+import {
+  ValidationError,
+  NotFoundError,
+  BusinessRuleError,
+} from '../../../application/errors/ApplicationErrors.js';
 
 export class ReservaCampingController {
   constructor(
-    private listarUseCase: ListarReservasCampingUseCase
+    private listarUseCase: ListarReservasCampingUseCase,
+    private actualizarUseCase?: ActualizarReservaCampingUseCase,
+    private eliminarUseCase?: EliminarReservaCampingUseCase
   ) {}
+
+  private manejarError(err: any, res: Response) {
+    if (err instanceof ValidationError) {
+      return res.status(400).json({ error: err.message });
+    }
+    if (err instanceof NotFoundError) {
+      return res.status(404).json({ error: err.message });
+    }
+    if (err instanceof BusinessRuleError) {
+      return res.status(409).json({ error: err.message });
+    }
+    const status = err.status || 500;
+    return res.status(status).json({ error: err.message || 'Error interno del servidor' });
+  }
 
   listar = async (req: Request, res: Response) => {
     try {
@@ -62,8 +85,45 @@ export class ReservaCampingController {
 
       return res.status(200).json(resultado);
     } catch (err: any) {
-      const status = err.status || 500;
-      return res.status(status).json({ error: err.message || 'Error interno del servidor' });
+      return this.manejarError(err, res);
+    }
+  };
+
+  actualizar = async (req: Request, res: Response) => {
+    try {
+      const idStr = String(req.params.id ?? '');
+      if (!/^\d+$/.test(idStr) || parseInt(idStr, 10) <= 0) {
+        return res.status(400).json({ error: 'El id debe ser un número entero positivo' });
+      }
+
+      const id = parseInt(idStr, 10);
+      if (!this.actualizarUseCase) {
+        return res.status(500).json({ error: 'Caso de uso de actualización no configurado' });
+      }
+
+      const resultado = await this.actualizarUseCase.ejecutar(id, req.body);
+      return res.status(200).json({ data: resultado });
+    } catch (err: any) {
+      return this.manejarError(err, res);
+    }
+  };
+
+  eliminar = async (req: Request, res: Response) => {
+    try {
+      const idStr = String(req.params.id ?? '');
+      if (!/^\d+$/.test(idStr) || parseInt(idStr, 10) <= 0) {
+        return res.status(400).json({ error: 'El id debe ser un número entero positivo' });
+      }
+
+      const id = parseInt(idStr, 10);
+      if (!this.eliminarUseCase) {
+        return res.status(500).json({ error: 'Caso de uso de eliminación no configurado' });
+      }
+
+      const resultado = await this.eliminarUseCase.ejecutar(id);
+      return res.status(200).json(resultado);
+    } catch (err: any) {
+      return this.manejarError(err, res);
     }
   };
 }

@@ -69,6 +69,13 @@ export class CreateCampingReservationUseCase {
       );
     }
 
+    // Rule 2: at most one active camping reservation per attendee
+    if (await this.repository.tieneReservaActiva(asistente_id)) {
+      throw new BusinessRuleError(
+        `Attendee ${asistente_id} already has an active camping reservation`
+      );
+    }
+
     // Server-side fields (id, state) are ignored if the client sends them
     return await this.repository.crear({
       asistente_id,

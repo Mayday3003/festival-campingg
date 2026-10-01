@@ -30,10 +30,6 @@ export class ActualizarReservaCampingUseCase {
     }
 
     const claves = Object.keys(payload);
-    if (claves.length === 0) {
-      throw new ValidationError('Debe enviar al menos un campo para actualizar');
-    }
-
     const camposNoPermitidos = claves.filter((k) => !CAMPOS_PERMITIDOS.includes(k));
     if (camposNoPermitidos.length > 0) {
       throw new ValidationError(
@@ -84,6 +80,11 @@ export class ActualizarReservaCampingUseCase {
     const reservaActual = await this.repository.obtenerPorId(id);
     if (!reservaActual || reservaActual.state === 'REMOVED') {
       throw new NotFoundError('Reserva de camping no encontrada');
+    }
+
+    // Cuerpo vacío se revisa después de la existencia: PATCH /999999 con {} → 404
+    if (claves.length === 0) {
+      throw new ValidationError('Debe enviar al menos un campo para actualizar');
     }
 
     // Coherencia de fechas combinando valores nuevos con existentes
